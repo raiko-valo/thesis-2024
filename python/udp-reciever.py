@@ -17,7 +17,7 @@ def gamepad_controller(gamepad, data):
     data_splited = data.split(" ")
     leftStickX, leftStickY, rightStickY, m5buttonClick = int(data_splited[0]) - 100, int(data_splited[1]) - 100, int(data_splited[2]) - 100, int(data_splited[3])
     floatLeftStickX = get_stick_value(leftStickX) * -1
-    floatLeftStickY = get_stick_value(leftStickY)
+    floatLeftStickY = get_stick_value(leftStickY) * -1
     floatRightStickY = get_stick_value(rightStickY)
     gamepad.left_joystick_float(x_value_float=floatLeftStickX, y_value_float=floatLeftStickY)
 
