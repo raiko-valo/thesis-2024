@@ -39,7 +39,6 @@ def gamepad_controller(gamepad, data):
 def send_data(message, player, port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    print(player, port, message)
     client_socket.sendto(message.encode('utf-8'), (player, port))
     client_socket.close()
 
@@ -71,12 +70,11 @@ def start_server(host, port):
                         break
                     else:
                         if "send_time" in action.keys():
-                            send_time = action["send_time"]
+                            action["type"] = "time"
                             ip_parts = HOST.split('.')
                             ip_parts[-1] = player
                             ip_address = '.'.join(ip_parts)
-                            dataObj = {'send_time': send_time, "type": "time"}
-                            dataStr = json.dumps(dataObj) + ";"
+                            dataStr = json.dumps(action) + ";"
                             send_data(dataStr, ip_address, PORT)
                         gamepad_controller(gamepads[player], action["data"])
                 if action["type"] == "time":
