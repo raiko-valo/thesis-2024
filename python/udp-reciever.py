@@ -76,10 +76,12 @@ def start_server(host, port):
                             ip_address = '.'.join(ip_parts)
                             dataStr = json.dumps(action) + ";"
                             send_data(dataStr, ip_address, PORT)
+                            with open("delta_test_loss_controller.txt", "a") as file:
+                                file.write(json.dumps(action) + "\n")
                         gamepad_controller(gamepads[player], action["data"])
                 if action["type"] == "time":
                     dataStr = input + ";"
-                    send_data(dataStr, HOST, PORT+1)
+                    send_data(dataStr, '192.168.0.79', PORT)
 
 
 
