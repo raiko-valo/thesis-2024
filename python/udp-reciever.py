@@ -13,7 +13,8 @@ def get_stick_value(stickValue):
     newValue = round(2 * math.floor(abs(stickValue) / 18) / 10 * (stickValue/abs(stickValue)), 1)
     return min(max(newValue, -1), 1)
 
-def gamepad_controller(gamepad, data):
+
+def gamepad_controller(gamepad, data, controller_type):
     data_splited = data.split(" ")
     leftStickX, leftStickY, rightStickY, m5buttonClick = int(data_splited[0]) - 100, int(data_splited[1]) - 100, int(data_splited[2]) - 100, int(data_splited[3])
     floatLeftStickX = get_stick_value(leftStickX) * -1
@@ -21,16 +22,30 @@ def gamepad_controller(gamepad, data):
     floatRightStickY = get_stick_value(rightStickY)
     gamepad.left_joystick_float(x_value_float=floatLeftStickX, y_value_float=floatLeftStickY)
 
-    if floatRightStickY > 0.5:
-        gamepad.directional_pad(direction=vg.DS4_DPAD_DIRECTIONS.DS4_BUTTON_DPAD_NORTH)
-    elif floatRightStickY < 0.5:
-        gamepad.directional_pad(direction=vg.DS4_DPAD_DIRECTIONS.DS4_BUTTON_DPAD_SOUTH)
-    else:
-        gamepad.directional_pad(direction=vg.DS4_DPAD_DIRECTIONS.DS4_BUTTON_DPAD_NONE)
-    if m5buttonClick == 1:
-        gamepad.press_button(button=vg.DS4_BUTTONS.DS4_BUTTON_CROSS)
-    else:
-        gamepad.release_button(button=vg.DS4_BUTTONS.DS4_BUTTON_CROSS)
+    if controller_type == "ds4":    
+        if floatRightStickY > 0.5:
+            gamepad.directional_pad(direction=vg.DS4_DPAD_DIRECTIONS.DS4_BUTTON_DPAD_NORTH)
+        elif floatRightStickY < -0.5:
+            gamepad.directional_pad(direction=vg.DS4_DPAD_DIRECTIONS.DS4_BUTTON_DPAD_SOUTH)
+        else:
+            gamepad.directional_pad(direction=vg.DS4_DPAD_DIRECTIONS.DS4_BUTTON_DPAD_NONE)
+        if m5buttonClick == 1:
+            gamepad.press_button(button=vg.DS4_BUTTONS.DS4_BUTTON_CROSS)
+        else:
+            gamepad.release_button(button=vg.DS4_BUTTONS.DS4_BUTTON_CROSS)
+    elif controller_type == "xbox":
+        if floatRightStickY > 0.5:
+            gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_UP)
+        else:
+            gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_UP)
+        if floatRightStickY < -0.5:
+            gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_DOWN)
+        else:
+            gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_DOWN)
+        if m5buttonClick == 1:
+            gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
+        else:
+            gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
 
     gamepad.update()  # Send the updated state to the gamepad
 
@@ -60,26 +75,38 @@ def start_server(host, port):
                 action = json.loads(input)
 
                 if action["type"] == "input":
+
                     player = action["player"]
+
                     if player not in gamepads.keys():
-                        gamepads[player] = vg.VDS4Gamepad()
+
+                        if action["controller"] == "ds4":
+                            gamepads[player] = vg.VDS4Gamepad()
+                        elif action["controller"] == "xbox":
+                            gamepads[player] = vg.VX360Gamepad()
+
                     elif player == "exit":
+
                         is_exit = True
                         break
+
                     else:
-                        if "send_time" in action.keys():
-                            action["type"] = "time"
-                            ip_parts = HOST.split('.')
-                            ip_parts[-1] = player
-                            ip_address = '.'.join(ip_parts)
-                            dataStr = json.dumps(action) + ";"
-                            send_data(dataStr, ip_address, PORT)
-                            with open("delta_test_loss_controller.txt", "a") as file:
-                                file.write(json.dumps(action) + "\n")
-                        gamepad_controller(gamepads[player], action["data"])
-                if action["type"] == "time":
-                    dataStr = input + ";"
-                    send_data(dataStr, '192.168.0.79', PORT)
+
+                        # if "send_time" in action.keys():
+                        #     action["type"] = "time"
+                        #     ip_parts = HOST.split('.')
+                        #     ip_parts[-1] = player
+                        #     ip_address = '.'.join(ip_parts)
+                        #     dataStr = json.dumps(action) + ";"
+                        #     send_data(dataStr, ip_address, PORT)
+                        #     with open("delta_test_loss_controller.txt", "a") as file:
+                        #         file.write(json.dumps(action) + "\n")
+
+                        gamepad_controller(gamepads[player], action["data"], action["controller"])
+
+                # if action["type"] == "time":
+                #     dataStr = input + ";"
+                #     send_data(dataStr, '192.168.0.79', PORT)
 
 
 
