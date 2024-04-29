@@ -22,17 +22,15 @@ def gamepad_controller(gamepad, data):
     gamepad.left_joystick_float(x_value_float=floatLeftStickX, y_value_float=floatLeftStickY)
 
     if floatRightStickY > 0.5:
-        gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_UP)
+        gamepad.directional_pad(direction=vg.DS4_DPAD_DIRECTIONS.DS4_BUTTON_DPAD_NORTH)
+    elif floatRightStickY < 0.5:
+        gamepad.directional_pad(direction=vg.DS4_DPAD_DIRECTIONS.DS4_BUTTON_DPAD_SOUTH)
     else:
-        gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_UP)
-    if floatRightStickY < 0.5:
-        gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_DOWN)
-    else:
-        gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_DPAD_DOWN)
+        gamepad.directional_pad(direction=vg.DS4_DPAD_DIRECTIONS.DS4_BUTTON_DPAD_NONE)
     if m5buttonClick == 1:
-        gamepad.press_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
+        gamepad.press_button(button=vg.DS4_BUTTONS.DS4_BUTTON_CROSS)
     else:
-        gamepad.release_button(button=vg.XUSB_BUTTON.XUSB_GAMEPAD_A)
+        gamepad.release_button(button=vg.DS4_BUTTONS.DS4_BUTTON_CROSS)
 
     gamepad.update()  # Send the updated state to the gamepad
 
@@ -64,7 +62,7 @@ def start_server(host, port):
                 if action["type"] == "input":
                     player = action["player"]
                     if player not in gamepads.keys():
-                        gamepads[player] = vg.VX360Gamepad()
+                        gamepads[player] = vg.VDS4Gamepad()
                     elif player == "exit":
                         is_exit = True
                         break
