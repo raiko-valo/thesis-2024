@@ -3,14 +3,6 @@ import keyboard
 import time
 import json
 import threading
-import math
-
-PORT = 12345 
-
-# def send_data(host, port, message):
-#     client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-#     client_socket.sendto(message.encode('utf-8'), (host, port))
-#     client_socket.close()
 
 def get_ip_address():
     try:
@@ -115,13 +107,13 @@ def handle_controls():
 
 def listen_on_port():
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    server_socket.bind((HOST, PORT+1))
-    print(f"Server listening on {HOST}:{PORT+1}")
+    server_socket.bind((HOST, PORT))
+    print(f"Server listening on {HOST}:{PORT}")
     while True:
         data, address = server_socket.recvfrom(1024)
         if (data):
             data_decoded = data.decode('utf-8')
-            recieve_time = int(time.time() * TIME_MODIFIER)
+            receive_time = int(time.time() * TIME_MODIFIER)
 
             for input in data_decoded.split(";"):
                 if input.strip():
@@ -129,26 +121,25 @@ def listen_on_port():
                     print(action)
 
                     if action["type"] == "time":
-                        if "recieve_time" not in action.keys():
-                            time_spent = recieve_time - int(action["send_time"])
-                            action["recieve_time"] = recieve_time
+                        if "receive_time" not in action.keys():
+                            time_spent = receive_time - int(action["send_time"])
+                            action["receive_time"] = receive_time
                         else:
-                            time_spent = int(action["recieve_time"]) - int(action["send_time"])
+                            time_spent = int(action["receive_time"]) - int(action["send_time"])
 
                         action["time_spent"] = time_spent
-                        action["average_time"] = math.ceil(time_spent/2)
 
-                        break
 
-                        with open("delta_test.txt", "a") as file:
+                        with open("tests/delta_test_new_controller.txt", "a") as file:
                             file.write(json.dumps(action) + "\n")
 
 
         
 
 if __name__ == "__main__":
-    TIME_MODIFIER = 10000
+    TIME_MODIFIER = 1000
     HOST = get_ip_address()
+    PORT = 12345 
     
     listen_thread = threading.Thread(target=listen_on_port, args=())
     listen_thread.start()

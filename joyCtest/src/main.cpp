@@ -13,21 +13,23 @@ String lastInput = "";
 
 WiFiUDP udp;
 WiFiUDP udpListener; // UDP object for listening
-const int listenerPort = 1111; // Port for UDP listening
 
-const char *ssid = "poco_wifi";
-const char *password = "1122qqww";
-const char *host = "192.168.39.141";
+
+const char *ssid = "your_wifi_name"; // Replace with your wifi name
+const char *password = "your_wifi_password"; // Repalce with your wifi password
+const char *host = "192.168.0.000"; // Replace with your server ip
 const int port = 12345;  // Replace with your server port
 
 StaticJsonDocument<200> outboundData; // JSON document buffer
 String localIPAddress;
 
 void setup() {
+    // Initialize M5StickC
     M5.begin();
     Wire.begin(0, 26, 400000UL);
     img.createSprite(80, 160);
 
+    // Initialize serial communication
     Serial.begin(115200);
 
     // Connect to WiFi
@@ -48,11 +50,13 @@ void setup() {
     udp.begin(port);
 }
 
+// Initialize variables for tracking joystick and button state
 int lastLeftStickX = 0;
 int lastLeftStickY = 0;
 int lastrightStickY = 0;
 int lastM5ButtonClick = 0;
 
+// Function to send data over UDP
 void sendData(String message) {
     udp.beginPacket(host, port);
     Serial.println(message);
@@ -60,12 +64,17 @@ void sendData(String message) {
     udp.endPacket();
 }
 
+unsigned long previousMillis = millis();
+unsigned long dataCounter = 0;
+
 void loop() {
     char text_buff[100];
 
+    // Update M5StickC state
     M5.update();
     img.fillSprite(TFT_BLACK);
 
+    // Read joystick and button states
     int leftStickX = joyc.GetX(0);
     int leftStickY = joyc.GetY(0);
     int rightStickY = joyc.GetY(1);
@@ -74,11 +83,16 @@ void loop() {
         m5ButtonClick = 1;
     }
 
-    if (leftStickX != lastLeftStickX || 
-        leftStickY != lastLeftStickY ||
-        rightStickY != lastrightStickY ||
-        lastM5ButtonClick != m5ButtonClick) {
+    // Check if joystick or button state has changed
+    unsigned long currentMillis = millis();
+    if ((abs(leftStickX - lastLeftStickX) >= 1 || 
+        abs(leftStickY - lastLeftStickY) >= 1 ||
+        abs(rightStickY - lastrightStickY) >= 1 ||
+        (m5ButtonClick != lastM5ButtonClick)) &&
+        (currentMillis - previousMillis >= 10)) {
+        currentMillis = previousMillis;
 
+        // Construct string with joystick and button values
         joystickValues = String(leftStickX) + " " + String(leftStickY) + " " + String(rightStickY) + " " + String(m5ButtonClick);
 
         // Display left stick values
@@ -104,21 +118,25 @@ void loop() {
         outboundData["type"] = "input";
         outboundData["data"] = joystickValues;
         outboundData["send_time"] = millis(); // Current time in milliseconds
+        outboundData["id"] = dataCounter++;
+        outboundData["controller"] = "xbox";
         
         // Serialize JSON to a string
         String outboundJson;
         serializeJson(outboundData, outboundJson);
 
-
+        // Send JSON data over UDP
         sendData(outboundJson);
 
+        // Update previous state variables
         lastLeftStickX = leftStickX;
         lastLeftStickY = leftStickY;
         lastrightStickY = rightStickY;
         lastM5ButtonClick = m5ButtonClick;
     }
 
-
+    // Check for incoming UDP packets
+    // Only used for testing purposes, can be deleted
     int packetSize = udp.parsePacket();
     if (packetSize > 0) {
         Serial.println(packetSize);
@@ -140,6 +158,7 @@ void loop() {
             return;
         }
 
+        // Add receive time to JSON data
         inboundData["receive_time"] = millis();
         String inboundJson;
         serializeJson(inboundData, inboundJson);
