@@ -15,9 +15,9 @@ WiFiUDP udp;
 WiFiUDP udpListener; // UDP object for listening
 
 
-const char *ssid = "your_wifi_name"; // Replace with your wifi name
-const char *password = "your_wifi_password"; // Repalce with your wifi password
-const char *host = "192.168.0.000"; // Replace with your server ip
+const char *ssid = "poco_wifi"; // Replace with your wifi name
+const char *password = "1122qqww"; // Repalce with your wifi password
+const char *host = "192.168.179.141"; // Replace with your server ip
 const int port = 12345;  // Replace with your server port
 
 StaticJsonDocument<200> outboundData; // JSON document buffer
@@ -65,7 +65,8 @@ void sendData(String message) {
 }
 
 unsigned long previousMillis = millis();
-unsigned long dataCounter = 0;
+// Counter to add unique value to every package
+//unsigned long dataCounter = 0;
 
 void loop() {
     char text_buff[100];
@@ -85,11 +86,11 @@ void loop() {
 
     // Check if joystick or button state has changed
     unsigned long currentMillis = millis();
-    if ((abs(leftStickX - lastLeftStickX) >= 1 || 
-        abs(leftStickY - lastLeftStickY) >= 1 ||
-        abs(rightStickY - lastrightStickY) >= 1 ||
-        (m5ButtonClick != lastM5ButtonClick)) &&
-        (currentMillis - previousMillis >= 10)) {
+    if ((abs(leftStickX - lastLeftStickX) > 1 || 
+        abs(leftStickY - lastLeftStickY) > 1 ||
+        abs(rightStickY - lastrightStickY) > 1 ||
+        (m5ButtonClick != lastM5ButtonClick)) ||
+        (currentMillis - previousMillis > 50)) {
         currentMillis = previousMillis;
 
         // Construct string with joystick and button values
@@ -115,11 +116,11 @@ void loop() {
         // Format data as JSON
         outboundData.clear();
         outboundData["player"] = localIPAddress;
-        outboundData["type"] = "input";
         outboundData["data"] = joystickValues;
-        outboundData["send_time"] = millis(); // Current time in milliseconds
-        outboundData["id"] = dataCounter++;
-        outboundData["controller"] = "xbox";
+        //outboundData["type"] = "input";
+        //outboundData["send_time"] = millis(); // Current time in milliseconds
+        //outboundData["id"] = dataCounter++;
+        //outboundData["controller"] = "xbox";
         
         // Serialize JSON to a string
         String outboundJson;
