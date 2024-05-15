@@ -15,9 +15,9 @@ WiFiUDP udp;
 WiFiUDP udpListener; // UDP object for listening
 
 
-const char *ssid = "poco_wifi"; // Replace with your wifi name
-const char *password = "1122qqww"; // Repalce with your wifi password
-const char *host = "192.168.179.141"; // Replace with your server ip
+const char *ssid = "name"; // Replace with your wifi name
+const char *password = "password"; // Repalce with your wifi password
+const char *host = "192.168.111.222"; // Replace with your server ip
 const int port = 12345;  // Replace with your server port
 
 StaticJsonDocument<200> outboundData; // JSON document buffer
